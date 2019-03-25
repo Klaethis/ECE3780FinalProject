@@ -1,12 +1,14 @@
 #include <Arduino.h>
-#include "ESP8266WiFi.h"
-#include "ESP8266WebServer.h"
 #include <Wire.h>
-#include <Adafruit_VEML6070.h>
-#include <Adafruit_BME280.h>
 #include <stdio.h>
-#include <ArduinoOTA.h>
 #include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+#include <Adafruit_BME280.h>
+#include <Adafruit_VEML6070.h>
+#include <ESP8266HTTPClient.h>
+#include "ESP8266WebServer.h"
+#include "ESP8266WiFi.h"
+#include "WiFiList.h"
 
 int count;
 double last;
@@ -14,8 +16,11 @@ ESP8266WebServer myServer(80);
 Adafruit_VEML6070 uv = Adafruit_VEML6070();
 Adafruit_BME280 bme;
 
-void initOTAService();
+int initOTAService();
+int findKnownWiFi();
+
 void handleRootPath();
+void handleTest();
 
 void setup() {
   count = 0;
@@ -28,13 +33,18 @@ void setup() {
   uv.begin(VEML6070_1_T);
   
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP("MikeNet", "fruitpies");
-  Serial.print("\n\nAPIP: ");
+  
+  if (initOTAService()) {
+    Serial.print("\r\nOTA init complete! IP address: ");
+    Serial.println(WiFi.localIP());
+  }
+
+  WiFi.softAP(APCred.SSID, APCred.Password);
+  Serial.print("\r\n\nAP SSID: " + APCred.SSID + " AP IP: ");
   Serial.println(WiFi.softAPIP());
 
-  initOTAService();
-  
   myServer.on("/", handleRootPath);
+  myServer.on("/PublicIP", handleTest);
   myServer.begin();
   Serial.println("Server initialized, waiting...");
 }
@@ -55,20 +65,37 @@ void handleRootPath() {
   Serial.print("New connection! #");
   Serial.println(count++);
 
-  sprintf(buff, "Hello World! uv:%f, temp:%f, humid:%f, pres:%f", uvRead, temp, humid, pres);
+  sprintf(buff, "uv:%f,temp:%f,humid:%f,pres:%f", uvRead, temp, humid, pres);
   
   String outStr = String(buff);
 
   myServer.send(200, "text/plain", outStr);
 }
 
-void initOTAService() {
-  WiFi.begin("MerleIsMissing", "flamingo");
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.println("Waiting for OTA WiFi...");
-    delay(500);
+void handleTest()
+{
+  String host = "http://api.ipify.org/?format=text";
+
+  String test = "";
+  WiFiClient client;
+  HTTPClient http;
+
+  if (http.begin(client, host)) {
+    http.GET();
+    test += http.getString();
+    http.end();
   }
+  else
+    test += "Failed!";
+
+  myServer.send(200, "text/plain", test);
+}
+
+int initOTAService() {
+  findKnownWiFi();
+
+  if (WiFi.status() != WL_CONNECTED)
+    return -1;
 
   ArduinoOTA.onStart([]() {
     String type;
@@ -115,6 +142,35 @@ void initOTAService() {
   });
   
   ArduinoOTA.begin();
-  Serial.print("OTA init complete! IP address: ");
-  Serial.println(WiFi.localIP());
+  return 1;
+}
+
+int findKnownWiFi() {
+  int netTotal = WiFi.scanNetworks();
+
+  if (netTotal == 0) {
+    Serial.println("\r\n\nNo networks found");
+    return -1;
+  }
+  else {
+    for (int i = 0; i < netTotal && WiFi.status() != WL_CONNECTED; i++)
+    {
+      for (unsigned int j = 0; j < sizeof(knownNetworks) && WiFi.status() != WL_CONNECTED; j++)
+      {
+        if (WiFi.SSID(i) == knownNetworks[j].SSID){
+          Serial.println("\r\n\nKnown network found!");
+          Serial.println("Connecting to " + knownNetworks[j].SSID);
+          WiFi.begin(knownNetworks[j].SSID, knownNetworks[j].Password);
+          Serial.print("Waiting to connect");
+          while (WiFi.status() != WL_CONNECTED)
+          {
+            Serial.print(".");
+            delay(500);
+          }
+          Serial.println(" ");
+        }
+      }
+    }
+  }
+  return 0;
 }
