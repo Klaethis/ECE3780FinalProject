@@ -1,4 +1,7 @@
+#ifndef WiFiList
+#define WiFiList
 #include <Arduino.h>
+
 typedef struct WiFiCred {
     String SSID;
     String Password;
@@ -10,3 +13,5 @@ WiFiCred knownNetworks[] = {
 };
 
 WiFiCred APCred = {"WeatherNet", "MakeItRain"};
+
+#endif
