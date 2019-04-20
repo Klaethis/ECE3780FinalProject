@@ -4,33 +4,33 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <Adafruit_BME280.h>
-#include <Adafruit_VEML6070.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include "WiFiList.h"
 
+#define blue_LED 2
+
 int count;
 double last;
 ESP8266WebServer myServer(80);
-Adafruit_VEML6070 uv = Adafruit_VEML6070();
 Adafruit_BME280 bme;
 
 int initOTAService();
 int findKnownWiFi();
 
-void handleRootPath();
+void handleRaw();
 void handleTest();
 
 void setup() {
   count = 0;
   last = millis();
   Serial.begin(115200);
+
+  pinMode(blue_LED, OUTPUT);
   
   if (!bme.begin())
     Serial.println("Error finding BME");
-
-  uv.begin(VEML6070_1_T);
   
   WiFi.mode(WIFI_AP_STA);
   
@@ -43,21 +43,29 @@ void setup() {
   Serial.print("\r\n\nAP SSID: " + APCred.SSID + " AP IP: ");
   Serial.println(WiFi.softAPIP());
 
-  myServer.on("/", handleRootPath);
+  myServer.on("/raw", handleRaw);
   myServer.on("/PublicIP", handleTest);
   myServer.begin();
   Serial.println("Server initialized, waiting...");
 }
 
+
+int counter = 0;
 void loop() {
   myServer.handleClient();
   ArduinoOTA.handle();
+  if (100 - counter > 0)
+    counter++;
+  else
+    digitalWrite(blue_LED, HIGH);
 }
 
-void handleRootPath() {
+void handleRaw() {
   char buff[200];
+
+  digitalWrite(blue_LED, LOW);
+  counter = 0;
   
-  float uvRead = uv.readUV();
   float temp = bme.readTemperature();
   float humid = bme.readHumidity();
   float pres = bme.readPressure();
@@ -65,7 +73,7 @@ void handleRootPath() {
   Serial.print("New connection! #");
   Serial.println(count++);
 
-  sprintf(buff, "uv:%f,temp:%f,humid:%f,pres:%f", uvRead, temp, humid, pres);
+  sprintf(buff, "T:%.2f H:%.2f,P:%.3f Hg", temp*9/5+32, humid, pres/3386.389);
   
   String outStr = String(buff);
 
