@@ -8,6 +8,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 #include "WiFiList.h"
+#include "Website.h"
 
 #define blue_LED 2
 
@@ -21,6 +22,7 @@ int findKnownWiFi();
 
 void handleRaw();
 void handleTest();
+void handleHuman();
 
 void setup() {
   count = 0;
@@ -44,7 +46,9 @@ void setup() {
   Serial.println(WiFi.softAPIP());
 
   myServer.on("/raw", handleRaw);
+  myServer.on("/", handleHuman);
   myServer.on("/PublicIP", handleTest);
+  myServer.onNotFound(handleHuman);
   myServer.begin();
   Serial.println("Server initialized, waiting...");
 }
@@ -60,6 +64,26 @@ void loop() {
     digitalWrite(blue_LED, HIGH);
 }
 
+void handleHuman() {
+  char buff[2000];
+
+  digitalWrite(blue_LED, LOW);
+  counter = 0;
+  
+  float temp = bme.readTemperature();
+  float humid = bme.readHumidity();
+  float pres = bme.readPressure();
+  
+  Serial.print("New connection! #");
+  Serial.println(count++);
+
+  sprintf(buff, HumanSite, temp*9/5+32, humid, pres/3386.389);
+  
+  String outStr = String(buff);
+
+  myServer.send(200, "text/html", outStr);
+}
+
 void handleRaw() {
   char buff[200];
 
@@ -73,7 +97,7 @@ void handleRaw() {
   Serial.print("New connection! #");
   Serial.println(count++);
 
-  sprintf(buff, "T:%.2f H:%.2f,P:%.3f Hg", temp*9/5+32, humid, pres/3386.389);
+  sprintf(buff, "T:%.2f H:%.2f,P:%.3f inHg", temp*9/5+32, humid, pres/3386.389);
   
   String outStr = String(buff);
 
