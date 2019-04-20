@@ -97,7 +97,8 @@ void handleRaw() {
   Serial.print("New connection! #");
   Serial.println(count++);
 
-  sprintf(buff, "T:%.2f H:%.2f,P:%.3f inHg", temp*9/5+32, humid, pres/3386.389);
+
+  sprintf(buff, "T:%.2f H:%.2f%%,P:%.3f inHg", temp*9/5+32, humid, pres/3386.389);
   
   String outStr = String(buff);
 
