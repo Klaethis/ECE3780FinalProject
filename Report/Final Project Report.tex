@@ -1,0 +1,90 @@
+\documentclass[onecolumn, 12pt]{IEEEConf}
+\usepackage{xr}
+\usepackage{zref}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[export]{adjustbox}
+\usepackage{setspace}
+\usepackage{url}
+
+
+\input{"C:/Users/Klaethis/Documents/Latex Templates/CodeFormat.tex"}
+\input{"C:/Users/Klaethis/Documents/Latex Templates/MathFormat.tex"}
+
+
+\renewcommand{\thesection}{\Roman{section}}
+\renewcommand{\thesubsection}{\Alph{subsection}}
+\renewcommand{\thesubsubsection}{\roman{subsubsection}}
+
+
+\title{Final Project Report}
+\author{Mike Zimmerman \\ ECE-3780-001 \\ Communications Systems}
+\date{\today}
+
+
+\begin{document}
+    \maketitle
+    \doublespacing
+    \section{Introduction}
+        The purpose of this project was to demonstrate a wireless communication system.
+        The system chosen for this project was the Wi-Fi\footnote{Wi-Fi is a registered trademark of the Wi-Fi alliance.} wireless communication protocol.
+        This protocol was selected for its ubiquity and ease of use.
+        In order to implement our communication, a microcontroller (MCU), was selected that natively supported Wi-Fi.
+
+        In order to show that wireless communication was possible, two different systems were created.
+        One as the server, and another as the client.
+        The server has an environment sensor attached, and would send the data to connected clients.
+        The client would detect the server device, connect, gather the transmitted data, and display the values on a screen.
+        As a secondary client, the server would also produce a simple webpage that a computer could display.
+
+    \section{Wi-Fi Background}
+        The chosen wireless communication for this project was Wi-Fi.
+        It was created as it is known today by the Wi-Fi Alliance in september 1998, and is now the most popular wireless communication protocol.\cite{Wi-Fi_History}
+        It uses the IEEE 802.11 standard. 
+
+        Wi-Fi uses radio waves in the 2.4 GHz or 5 GHz frequencies to transmit and receive digital data.
+        These frequencies are in Ultra High, and Super High frequency bands.
+
+        % Talk more about how wifi packets are built and transmitted.
+
+    \section{ESP8266}
+        % Talk about Espressif's general history
+
+        % Talk about the initial development of the ESP8266 as a assistant controller.
+
+        % Talk about the development of the individual module.
+
+    \section{Final Project}
+        % Short intro to the idea of the weather station
+
+    \subsection{Server Development}
+        % Talk about the server circuit
+
+        % Talk about the server code
+
+        % Talk about the ability for the server to be updated over the air
+
+    \subsection{Client Development}
+        % Talk about the client circuit
+
+        % Talk about the client code
+
+    \subsection{Further Development}
+        % Talk about the development of the computer application
+
+        % Talk about how many clients can connect at a time. (4 currently, but it might be possible to extend that)
+
+    \section{Results}
+        % Talk about how stable the connection is
+
+        % Talk about the distance the server can be accessed at 43'6"
+
+    \section{Conclusion}
+
+        % Wrap it up!
+
+    \section{Appendix}
+
+    \bibliographystyle{IEEEConf}
+    \bibliography{Bibliography.bib}
+\end{document}
